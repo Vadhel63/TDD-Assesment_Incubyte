@@ -18,10 +18,11 @@ export async function addSweet(req: Request, res: Response) {
 
 export async function listSweets(req: Request, res: Response) {
   try {
-    const sweets = await SweetModel.find();
-    return res.status(200).json({ sweets });
+    const sweets = await SweetModel.find().lean();
+    return successResponse(res, { sweets });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Internal server error" });
+    return errorResponse(res, "Internal server error", 500);
   }
 }
+
