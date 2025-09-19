@@ -44,3 +44,14 @@ export async function searchSweets(req: Request, res: Response) {
     return errorResponse(res, "Internal server error", 500);
   }
 }
+
+export async function updateSweet(req: Request, res: Response) {
+  try {
+    const sweet = await SweetModel.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).lean();
+    if (!sweet) return errorResponse(res, "Sweet not found", 404);
+    return successResponse(res, { sweet });
+  } catch (err) {
+    console.error(err);
+    return errorResponse(res, "Internal server error", 500);
+  }
+}
