@@ -1,7 +1,6 @@
 // src/app.ts
 import express, { Request, Response } from "express";
 import authRoutes from "./routes/auth.route"
-
 const app = express();
 app.use(express.json());
 
