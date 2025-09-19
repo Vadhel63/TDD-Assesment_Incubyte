@@ -1,11 +1,13 @@
 // src/app.ts
 import express, { Request, Response } from "express";
 import authRoutes from "./routes/auth.route"
+import sweetRoutes from "./routes/sweet.route"
 const app = express();
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
 
+app.use("/api/auth", authRoutes);
+app.use("/api",sweetRoutes)
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({ message: "Sweet Shop API" });
 });
