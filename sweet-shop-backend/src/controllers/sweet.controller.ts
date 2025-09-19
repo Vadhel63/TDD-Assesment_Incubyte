@@ -26,3 +26,21 @@ export async function listSweets(req: Request, res: Response) {
   }
 }
 
+export async function searchSweets(req: Request, res: Response) {
+  try {
+    const { name, category, minPrice, maxPrice } = req.query;
+    let filter: any = {};
+
+    if (name) filter.name = { $regex: name.toString(), $options: "i" };
+    if (category) filter.category = { $regex: category.toString(), $options: "i" };
+    if (minPrice || maxPrice) filter.price = {};
+    if (minPrice) filter.price.$gte = Number(minPrice);
+    if (maxPrice) filter.price.$lte = Number(maxPrice);
+
+    const sweets = await SweetModel.find(filter);
+    return res.status(200).json({ sweets });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
