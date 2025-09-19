@@ -15,3 +15,13 @@ export async function addSweet(req: Request, res: Response) {
     return errorResponse(res, "Internal server error", 500);
   }
 }
+
+export async function listSweets(req: Request, res: Response) {
+  try {
+    const sweets = await SweetModel.find();
+    return res.status(200).json({ sweets });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
