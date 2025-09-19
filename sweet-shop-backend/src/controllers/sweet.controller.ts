@@ -55,3 +55,16 @@ export async function updateSweet(req: Request, res: Response) {
     return errorResponse(res, "Internal server error", 500);
   }
 }
+
+export async function deleteSweet(req: Request, res: Response)
+ {
+  try {
+    const sweet = await SweetModel.findByIdAndDelete(req.params.id);
+    if (!sweet) return res.status(404).json({ message: "Sweet not found" });
+
+    return res.status(200).json({ message: "Sweet deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
