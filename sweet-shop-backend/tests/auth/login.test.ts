@@ -22,11 +22,10 @@ describe("POST /api/auth/login", () => {
 
   it("returns 200 and token + user on valid credentials", async () => {
     const password = "StrongP@ssword";
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await UserModel.create({
+        await UserModel.create({
       name: "Milan",
       email: "milan@gmail.com",
-      password: hashedPassword,
+      password: password,
     });
 
     const res = await request(app).post(endpoint).send({
