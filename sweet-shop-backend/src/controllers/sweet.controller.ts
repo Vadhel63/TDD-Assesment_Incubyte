@@ -1,17 +1,17 @@
 import { Request, Response } from "express";
 import SweetModel from "../models/sweet.model";
+import { validateSweet } from "../utils/validateSweet";
+import { successResponse, errorResponse } from "../utils/responseHelper";
 
 export async function addSweet(req: Request, res: Response) {
   try {
-    const { name, category, price, quantity } = req.body;
-    if (!name || !category || price == null || quantity == null) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+    const validationError = validateSweet(req.body);
+    if (validationError) return errorResponse(res, validationError, 400);
 
-    const sweet = await SweetModel.create({ name, category, price, quantity });
-    return res.status(201).json({ sweet });
+    const sweet = await SweetModel.create(req.body);
+    return successResponse(res, { sweet }, 201);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Internal server error" });
+    return errorResponse(res, "Internal server error", 500);
   }
 }
