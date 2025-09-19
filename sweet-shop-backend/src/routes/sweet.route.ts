@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addSweet ,listSweets,searchSweets,updateSweet,deleteSweet} from "../controllers/sweet.controller";
+import { addSweet ,listSweets,searchSweets,updateSweet,deleteSweet,purchaseSweet,restockSweet} from "../controllers/sweet.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { adminMiddleware } from "../middlewares/role.middleware";
 
@@ -11,6 +11,8 @@ router.get("/sweets/search", authMiddleware, searchSweets);
 router.put("/sweets/:id",authMiddleware,adminMiddleware,updateSweet)
 router.delete("/sweets/:id",authMiddleware,adminMiddleware,deleteSweet)
 
-
+// Inventory
+router.post("/sweets/:id/purchase", authMiddleware, purchaseSweet);
+router.post("/sweets/:id/restock", authMiddleware, adminMiddleware, restockSweet);
 
 export default router;

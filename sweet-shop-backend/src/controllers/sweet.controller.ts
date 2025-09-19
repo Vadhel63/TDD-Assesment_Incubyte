@@ -66,3 +66,41 @@ export async function deleteSweet(req: Request, res: Response) {
     return errorResponse(res, "Internal server error", 500);
   }
 }
+
+//Inventory-Section
+
+// Purchase sweet (any user)
+export async function purchaseSweet(req: Request, res: Response) {
+  try {
+    const sweet = await SweetModel.findById(req.params.id);
+    if (!sweet) return res.status(404).json({ message: "Sweet not found" });
+
+    const purchaseQty = req.body.quantity;
+    if (purchaseQty > sweet.quantity) return res.status(400).json({ message: "Not enough stock" });
+
+    sweet.quantity -= purchaseQty;
+    await sweet.save();
+
+    return res.status(200).json({ sweet });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// Restock sweet (admin only)
+export async function restockSweet(req: Request, res: Response) {
+  try {
+    const sweet = await SweetModel.findById(req.params.id);
+    if (!sweet) return res.status(404).json({ message: "Sweet not found" });
+
+    const restockQty = req.body.quantity;
+    sweet.quantity += restockQty;
+    await sweet.save();
+
+    return res.status(200).json({ sweet });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
