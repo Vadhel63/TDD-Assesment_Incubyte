@@ -5,7 +5,7 @@ import LoginForm from "./components/LoginForm";
 import UserDashboard from "./components/UserDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import ManageUsers from "./components/admin/ManageUsers";
 const AppRoutes: React.FC = () => (
   <Routes>
     <Route path="/" element={<Navigate to="/login" replace />} />
@@ -30,7 +30,9 @@ const AppRoutes: React.FC = () => (
           <AdminDashboard />
         </ProtectedRoute>
       }
+      
     />
+      <Route path="/admin/manage-users" element={<ManageUsers />} />
 
     <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>

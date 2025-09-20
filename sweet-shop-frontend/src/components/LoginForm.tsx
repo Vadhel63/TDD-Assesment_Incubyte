@@ -30,6 +30,7 @@ const LoginForm = () => {
       // Save token and role
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role);
+localStorage.setItem("currentUser", JSON.stringify(data.user));
 
       const redirectPath = data.user.role === "admin" ? "/dashboard/admin" : "/dashboard/user";
 navigate(redirectPath);
