@@ -6,7 +6,7 @@ const ProtectedRoute = ({ children, adminOnly }: { children: JSX.Element; adminO
   const role = localStorage.getItem("role");
 
   if (!token) return <Navigate to="/login" replace />;
-  if (adminOnly && role !== "admin") return <Navigate to="/dashboard" replace />;
+  if (adminOnly && role !== "admin") return <Navigate to="/dashboard/user" replace />;
 
   return children;
 };

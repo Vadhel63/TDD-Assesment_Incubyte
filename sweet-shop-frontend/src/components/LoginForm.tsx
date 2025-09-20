@@ -31,8 +31,8 @@ const LoginForm = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role);
 
-      // Navigate to dashboard
-      navigate("/dashboard");
+      const redirectPath = data.user.role === "admin" ? "/dashboard/admin" : "/dashboard/user";
+navigate(redirectPath);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
