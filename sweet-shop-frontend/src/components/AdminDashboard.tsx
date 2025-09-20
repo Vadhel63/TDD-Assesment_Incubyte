@@ -10,7 +10,7 @@ interface Sweet {
   quantity: number;
 }
 
-const categories = ["Candy", "Chocolate", "Bakery","Traditional", "Ice Cream", "Other"];
+const categories = ["Candy", "Chocolate", "Bakery", "Traditional", "Ice Cream", "Other"];
 
 const AdminDashboard = () => {
   const [sweets, setSweets] = useState<Sweet[]>([]);
@@ -21,7 +21,7 @@ const AdminDashboard = () => {
     quantity: 0,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [restockMap, setRestockMap] = useState<{ [key: string]: number }>({}); // store restock qty per sweet
+  const [restockMap, setRestockMap] = useState<{ [key: string]: number }>({});
 
   const token = localStorage.getItem("token");
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -68,11 +68,7 @@ const AdminDashboard = () => {
             authHeader
           );
         } else {
-          res = await axios.put(
-            `http://localhost:5000/api/sweets/${editingId}`,
-            form,
-            authHeader
-          );
+          res = await axios.put(`http://localhost:5000/api/sweets/${editingId}`, form, authHeader);
         }
         setSweets((prev) => prev.map((s) => (s._id === editingId ? res.data.sweet : s)));
         setEditingId(null);
@@ -114,7 +110,7 @@ const AdminDashboard = () => {
         authHeader
       );
       setSweets((prev) => prev.map((s) => (s._id === id ? res.data.sweet : s)));
-      setRestockMap((prev) => ({ ...prev, [id]: 0 })); // reset input
+      setRestockMap((prev) => ({ ...prev, [id]: 0 }));
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to restock sweet");
     }
@@ -123,18 +119,18 @@ const AdminDashboard = () => {
   return (
     <>
       <Navbar />
-      <div className="p-6 max-w-6xl mx-auto mt-10 bg-white rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold mb-4 text-center text-gray-800">Admin Dashboard</h1>
-        <p className="text-lg text-center mb-6 text-gray-600">
+      <div className="p-6 max-w-7xl mx-auto mt-10">
+        <h1 className="text-3xl font-bold mb-2 text-center text-gray-800">Admin Dashboard</h1>
+        <p className="text-lg text-center mb-8 text-gray-600">
           Welcome! You are logged in as <span className="font-semibold">Admin</span>
         </p>
 
         {/* Form Card */}
-        <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-700">
+        <div className="bg-gray-50 p-6 rounded-xl shadow-md mb-10">
+          <h2 className="text-2xl font-semibold mb-5 text-gray-700">
             {editingId ? "Edit Sweet" : "Add New Sweet"}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input
               type="text"
               name="name"
@@ -143,7 +139,6 @@ const AdminDashboard = () => {
               onChange={handleChange}
               className="border p-2 rounded focus:outline-blue-400"
             />
-
             <select
               name="category"
               value={form.category}
@@ -157,7 +152,6 @@ const AdminDashboard = () => {
                 </option>
               ))}
             </select>
-
             <input
               type="number"
               name="price"
@@ -168,7 +162,6 @@ const AdminDashboard = () => {
               onChange={handleChange}
               className="border p-2 rounded focus:outline-blue-400"
             />
-
             <input
               type="number"
               name="quantity"
@@ -180,11 +173,10 @@ const AdminDashboard = () => {
               className="border p-2 rounded focus:outline-blue-400"
             />
           </div>
-
-          <div className="mt-4 flex justify-end">
+          <div className="mt-5 flex justify-end">
             <button
               onClick={handleSubmit}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105"
             >
               {editingId ? "Update Sweet" : "Add Sweet"}
             </button>
@@ -201,20 +193,26 @@ const AdminDashboard = () => {
             <div
               key={sweet._id}
               data-testid={`sweet-${sweet._id}`}
-              className="bg-white shadow-md rounded-xl p-4 hover:shadow-xl transition-all"
+              className="bg-white shadow-md rounded-xl p-5 hover:shadow-xl transition-all flex flex-col justify-between"
             >
-              <h3 className="text-xl font-semibold text-gray-800">{sweet.name}</h3>
-              <p className="text-gray-600">{sweet.category}</p>
-              <p className="text-gray-800 font-medium">${sweet.price.toFixed(2)}</p>
-              <p className="text-gray-500">Quantity: {sweet.quantity}</p>
+              <div className="space-y-1">
+                <h3 className="text-xl font-semibold text-gray-800">{sweet.name}</h3>
+                <p className="text-gray-600">{sweet.category}</p>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-gray-800 font-medium">${sweet.price.toFixed(2)}</span>
+                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-sm">
+                    Qty: {sweet.quantity}
+                  </span>
+                </div>
+              </div>
 
               {/* Restock Input */}
-              <div className="mt-2 flex gap-2 items-center">
+              <div className="mt-3 flex gap-2 items-center">
                 <input
                   type="number"
                   min={1}
                   placeholder="Restock qty"
-                  className="border p-1 rounded w-20"
+                  className="border p-2 rounded w-20 focus:outline-green-400"
                   value={restockMap[sweet._id!] || ""}
                   onChange={(e) =>
                     setRestockMap((prev) => ({ ...prev, [sweet._id!]: Number(e.target.value) }))
@@ -222,7 +220,7 @@ const AdminDashboard = () => {
                 />
                 <button
                   onClick={() => handleRestock(sweet._id!)}
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition-transform transform hover:scale-105"
                 >
                   Restock
                 </button>
@@ -232,14 +230,14 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => handleEdit(sweet)}
                   data-testid={`edit-${sweet._id}`}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded transition-transform transform hover:scale-105"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(sweet._id!)}
                   data-testid={`delete-${sweet._id}`}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition-transform transform hover:scale-105"
                 >
                   Delete
                 </button>
