@@ -10,7 +10,7 @@ interface Sweet {
   quantity: number;
 }
 
-const categories = ["Candy", "Chocolate", "Bakery", "Ice Cream", "Other"];
+const categories = ["Candy", "Chocolate", "Bakery","Traditional", "Ice Cream", "Other"];
 
 const AdminDashboard = () => {
   const [sweets, setSweets] = useState<Sweet[]>([]);
@@ -21,6 +21,7 @@ const AdminDashboard = () => {
     quantity: 0,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [restockMap, setRestockMap] = useState<{ [key: string]: number }>({}); // store restock qty per sweet
 
   const token = localStorage.getItem("token");
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -56,17 +57,30 @@ const AdminDashboard = () => {
       if (!form.name || !form.category) return alert("Name and Category are required");
 
       if (editingId) {
-        const res = await axios.put(
-          `http://localhost:5000/api/sweets/${editingId}`,
-          form,
-          authHeader
-        );
+        const currentSweet = sweets.find((s) => s._id === editingId)!;
+        const isRestock = form.quantity > currentSweet.quantity;
+
+        let res;
+        if (isRestock) {
+          res = await axios.post(
+            `http://localhost:5000/api/sweets/${editingId}/restock`,
+            { quantity: form.quantity - currentSweet.quantity },
+            authHeader
+          );
+        } else {
+          res = await axios.put(
+            `http://localhost:5000/api/sweets/${editingId}`,
+            form,
+            authHeader
+          );
+        }
         setSweets((prev) => prev.map((s) => (s._id === editingId ? res.data.sweet : s)));
         setEditingId(null);
       } else {
         const res = await axios.post("http://localhost:5000/api/sweets", form, authHeader);
         setSweets((prev) => [...prev, res.data.sweet]);
       }
+
       setForm({ name: "", category: "", price: 0, quantity: 0 });
     } catch (err: any) {
       alert(err.response?.data?.message || "Something went wrong");
@@ -86,6 +100,23 @@ const AdminDashboard = () => {
       setSweets((prev) => prev.filter((s) => s._id !== id));
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete sweet");
+    }
+  };
+
+  const handleRestock = async (id: string) => {
+    const qty = restockMap[id];
+    if (!qty || qty <= 0) return alert("Enter valid quantity to restock");
+
+    try {
+      const res = await axios.post(
+        `http://localhost:5000/api/sweets/${id}/restock`,
+        { quantity: qty },
+        authHeader
+      );
+      setSweets((prev) => prev.map((s) => (s._id === id ? res.data.sweet : s)));
+      setRestockMap((prev) => ({ ...prev, [id]: 0 })); // reset input
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to restock sweet");
     }
   };
 
@@ -160,52 +191,61 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto border-collapse shadow-sm">
-            <thead className="bg-blue-50">
-              <tr>
-                <th className="border p-2 text-left">Name</th>
-                <th className="border p-2 text-left">Category</th>
-                <th className="border p-2 text-left">Price</th>
-                <th className="border p-2 text-left">Quantity</th>
-                <th className="border p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sweets.map((sweet) => (
-                <tr key={sweet._id} data-testid={`sweet-${sweet._id}`} className="hover:bg-gray-50">
-                  <td className="border p-2">{sweet.name}</td>
-                  <td className="border p-2">{sweet.category}</td>
-                  <td className="border p-2">{sweet.price.toFixed(2)}</td>
-                  <td className="border p-2">{sweet.quantity}</td>
-                  <td className="border p-2 flex gap-2 justify-center">
-                    <button
-                      onClick={() => handleEdit(sweet)}
-                      data-testid={`edit-${sweet._id}`}
-                      className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(sweet._id!)}
-                      data-testid={`delete-${sweet._id}`}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {sweets.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center p-4 text-gray-500">
-                    No sweets available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {/* Sweet Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {sweets.length === 0 && (
+            <p className="text-center col-span-full text-gray-500">No sweets available</p>
+          )}
+
+          {sweets.map((sweet) => (
+            <div
+              key={sweet._id}
+              data-testid={`sweet-${sweet._id}`}
+              className="bg-white shadow-md rounded-xl p-4 hover:shadow-xl transition-all"
+            >
+              <h3 className="text-xl font-semibold text-gray-800">{sweet.name}</h3>
+              <p className="text-gray-600">{sweet.category}</p>
+              <p className="text-gray-800 font-medium">${sweet.price.toFixed(2)}</p>
+              <p className="text-gray-500">Quantity: {sweet.quantity}</p>
+
+              {/* Restock Input */}
+              <div className="mt-2 flex gap-2 items-center">
+                <input
+                  type="number"
+                  min={1}
+                  placeholder="Restock qty"
+                  className="border p-1 rounded w-20"
+                  value={restockMap[sweet._id!] || ""}
+                  onChange={(e) =>
+                    setRestockMap((prev) => ({ ...prev, [sweet._id!]: Number(e.target.value) }))
+                  }
+                />
+                <button
+                  onClick={() => handleRestock(sweet._id!)}
+                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                >
+                  Restock
+                </button>
+              </div>
+
+              <div className="mt-4 flex justify-between">
+                <button
+                  onClick={() => handleEdit(sweet)}
+                  data-testid={`edit-${sweet._id}`}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(sweet._id!)}
+                  data-testid={`delete-${sweet._id}`}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </>
