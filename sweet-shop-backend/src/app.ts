@@ -1,10 +1,14 @@
 // src/app.ts
 import express, { Request, Response } from "express";
+import cors from"cors"
 import authRoutes from "./routes/auth.route"
 import sweetRoutes from "./routes/sweet.route"
 const app = express();
 app.use(express.json());
-
+app.use(cors({
+  origin: "http://localhost:5173", // your frontend origin
+  credentials: true,               // if you need cookies/auth
+}));
 
 app.use("/api/auth", authRoutes);
 app.use("/api",sweetRoutes)
