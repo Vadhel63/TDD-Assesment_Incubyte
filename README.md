@@ -100,7 +100,7 @@ This project was developed as part of the **Incubyte Assessment Kata**, focusing
 ![User-dashboard](./asserts/Sweet.png)
 
 **Search & Filter Functionality**  
-![Search Filter](./asserts/Search&filter.png)
+![Search Filter](./asserts/Serach&filter.png)
 
 
 ---
