@@ -13,10 +13,14 @@ interface Sweet {
 const UserDashboard = () => {
   const [sweets, setSweets] = useState<Sweet[]>([]);
   const [purchaseMap, setPurchaseMap] = useState<{ [key: string]: number }>({});
-  const token = localStorage.getItem("token"); // fetch token from localStorage
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const token = localStorage.getItem("token");
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
-  // Fetch sweets from backend
+  const categories = ["All", "Candy", "Chocolate", "Bakery", "Traditional", "Ice Cream", "Other"];
+
+  // Fetch sweets
   const fetchSweets = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/sweets", authHeader);
@@ -30,6 +34,7 @@ const UserDashboard = () => {
     fetchSweets();
   }, []);
 
+  // Handle purchase
   const handleBuy = (id: string) => {
     const purchaseQty = purchaseMap[id] || 1;
     setSweets((prev) =>
@@ -39,25 +44,58 @@ const UserDashboard = () => {
           : sweet
       )
     );
-    setPurchaseMap((prev) => ({ ...prev, [id]: 1 })); // reset input to 1 after purchase
+    setPurchaseMap((prev) => ({ ...prev, [id]: 1 }));
   };
+
+  // Filtered sweets based on search and category
+  const filteredSweets = sweets.filter((sweet) => {
+    const matchesSearch = sweet.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      categoryFilter === "" || categoryFilter === "All" || sweet.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <>
       <Navbar />
       <div className="p-6 max-w-6xl mx-auto mt-10">
-        <div className="text-center mb-8">
+        {/* Dashboard Header */}
+        <div className="text-center mb-6">
           <h1 className="text-3xl font-bold mb-2 text-gray-800">User Dashboard</h1>
           <p className="text-lg text-gray-600">
             Welcome! You are logged in as <span className="font-semibold">User</span>
           </p>
         </div>
 
-        {sweets.length === 0 ? (
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <input
+            type="text"
+            placeholder="Search sweets..."
+            className="border p-2 rounded w-full md:w-1/2"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            className="border p-2 rounded w-full md:w-1/4"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            data-testid="category-filter"
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Sweet Cards or Empty Message */}
+        {filteredSweets.length === 0 ? (
           <p className="text-center text-gray-500 text-lg">No sweets available</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {sweets.map((sweet) => (
+            {filteredSweets.map((sweet) => (
               <div
                 key={sweet._id}
                 className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all flex flex-col justify-between"
