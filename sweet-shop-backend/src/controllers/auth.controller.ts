@@ -4,7 +4,7 @@ import { generateToken } from "../services/auth.service";
 import bcrypt from "bcryptjs"
 export async function register(req: Request, res: Response) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password,role } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email and password are required" });
@@ -24,7 +24,7 @@ export async function register(req: Request, res: Response) {
       return res.status(409).json({ message: "Email already registered" });
     }
 
-    const user = new UserModel({ name, email, password });
+    const user = new UserModel({ name, email, password ,role});
     await user.save();
 
     const token = generateToken(user);
