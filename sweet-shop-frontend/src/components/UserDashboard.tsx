@@ -12,9 +12,11 @@ interface Sweet {
 
 const UserDashboard = () => {
   const [sweets, setSweets] = useState<Sweet[]>([]);
+  const [purchaseMap, setPurchaseMap] = useState<{ [key: string]: number }>({});
   const token = localStorage.getItem("token"); // fetch token from localStorage
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
+  // Fetch sweets from backend
   const fetchSweets = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/sweets", authHeader);
@@ -28,11 +30,22 @@ const UserDashboard = () => {
     fetchSweets();
   }, []);
 
+  const handleBuy = (id: string) => {
+    const purchaseQty = purchaseMap[id] || 1;
+    setSweets((prev) =>
+      prev.map((sweet) =>
+        sweet._id === id
+          ? { ...sweet, quantity: Math.max(sweet.quantity - purchaseQty, 0) }
+          : sweet
+      )
+    );
+    setPurchaseMap((prev) => ({ ...prev, [id]: 1 })); // reset input to 1 after purchase
+  };
+
   return (
     <>
       <Navbar />
       <div className="p-6 max-w-6xl mx-auto mt-10">
-        {/* Dashboard Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2 text-gray-800">User Dashboard</h1>
           <p className="text-lg text-gray-600">
@@ -40,7 +53,6 @@ const UserDashboard = () => {
           </p>
         </div>
 
-        {/* Sweet Cards or Empty Message */}
         {sweets.length === 0 ? (
           <p className="text-center text-gray-500 text-lg">No sweets available</p>
         ) : (
@@ -54,11 +66,39 @@ const UserDashboard = () => {
                   <h3 className="text-xl font-semibold text-gray-800 mb-1">{sweet.name}</h3>
                   <p className="text-gray-600 mb-2">{sweet.category}</p>
                   <p className="text-gray-800 font-medium mb-2">${sweet.price.toFixed(2)}</p>
-                  <p className="text-gray-500">Quantity: {sweet.quantity}</p>
+                  <p className="text-gray-500 mb-2">Quantity: {sweet.quantity}</p>
+
+                  {/* Purchase Quantity Input */}
+                  {sweet.quantity > 0 && (
+                    <input
+                      type="number"
+                      min={1}
+                      max={sweet.quantity}
+                      value={purchaseMap[sweet._id!] || 1}
+                      onChange={(e) =>
+                        setPurchaseMap((prev) => ({
+                          ...prev,
+                          [sweet._id!]: Math.min(
+                            Math.max(1, Number(e.target.value)),
+                            sweet.quantity
+                          ),
+                        }))
+                      }
+                      className="border p-1 rounded w-20 mr-2"
+                    />
+                  )}
                 </div>
+
+                {/* Buy Button */}
                 <button
-                  className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md transition-all"
+                  className={`mt-4 text-white px-4 py-2 rounded-lg shadow-md transition-all ${
+                    sweet.quantity === 0
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  }`}
                   disabled={sweet.quantity === 0}
+                  onClick={() => handleBuy(sweet._id!)}
+                  data-testid={`purchase-${sweet._id}`}
                 >
                   {sweet.quantity === 0 ? "Out of Stock" : "Buy Now"}
                 </button>
